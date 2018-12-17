@@ -202,11 +202,11 @@ module.exports
       peg$c18 = peg$literalExpectation("cmp", false),
       peg$c19 = "go",
       peg$c20 = peg$literalExpectation("go", false),
-      peg$c21 = function(label, cond, dst) {
-        return { action: "go", target: label, condition: cond };
+      peg$c21 = function(label, cond, src) {
+        return { action: "go", target: label, condition: cond, src: src };
       },
       peg$c22 = function(label) {
-        return { action: "go", target: label, condition: true };
+        return { action: "go", target: label };
       },
       peg$c23 = "call",
       peg$c24 = peg$literalExpectation("call", false),

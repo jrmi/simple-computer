@@ -21,10 +21,10 @@ Instruction
   { return { 'action': 'compare', 'src': src, 'dst': dst }; }
   / "cmp" _ src:MemoryLocation _ "," _ dst:MemoryLocation
   { return { 'action': 'compare', 'src': src, 'dst': dst }; }
-  / "go" _ label:Label _ cond:Condition _ dst:MemoryLocation
-  { return { 'action': 'go', 'target': label, 'condition': cond }; }
+  / "go" _ label:Label _ cond:Condition _ src:MemoryLocation
+  { return { 'action': 'go', 'target': label, 'condition': cond, 'src': src }; }
   / "go" _ label:Label
-  { return { 'action': 'go', 'target': label, 'condition': true }; }
+  { return { 'action': 'go', 'target': label }; }
   / "call" _ label:Label
   { return { 'action': 'call', 'target': label }; }
   / "return"

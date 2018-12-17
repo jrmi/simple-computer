@@ -7,6 +7,7 @@ import Memory from "./components/memory";
 import Screen from "./components/screen";
 import KeyBoard from "./components/keyboard";
 import Editor from "./components/editor";
+import Stack from "./components/stack";
 
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
@@ -23,6 +24,8 @@ class App extends Component {
     this.execute = this.execute.bind(this);
     this.onReset = this.onReset.bind(this);
     this.onInstruction = this.onInstruction.bind(this);
+    this.pushStack = this.pushStack.bind(this);
+    this.popStack = this.popStack.bind(this);
 
     this.screenHeight = 10;
     this.screenWidth = 50;
@@ -32,8 +35,10 @@ class App extends Component {
       buffer: [],
       screen: [],
       memory: [],
+      stack: [],
       code:
-        "copy 1, mem[2]\nstart:\ncopy 200,*screen[2]\ninc mem[2]\ngo start\n"
+        "copy 1, mem[2]\nstart:\ncopy 200,*screen[2]\ninc mem[2]\ncopy mem[2], mem[3]\n" +
+        "sub 10,mem[3]\npush mem[2]\npop mem[4]\ngo start ifpositive mem[3]\n"
     };
   }
 
@@ -72,7 +77,20 @@ class App extends Component {
     const memory = this.state.memory.slice();
     memory[index] = value;
     await this.setState({ memory: memory });
-    console.log(this.state.memory);
+  }
+
+  async pushStack(value) {
+    const stack = this.state.stack.slice();
+    stack.push(value);
+    await this.setState({ stack: stack });
+  }
+
+  async popStack() {
+    const stack = this.state.stack.slice();
+    const result = await stack.pop();
+    console.log(result);
+    await this.setState({ stack: stack });
+    return result;
   }
 
   execute() {
@@ -144,11 +162,51 @@ class App extends Component {
         this.write(instruction.dst, result);
         break;
       case "go":
+        console.log("go", instruction);
+        if (!instruction.hasOwnProperty("condition")) {
+          nextInstruction = targets[instruction.target];
+        } else {
+          const test = this.read(instruction.src);
+          console.log(test);
+          switch (instruction.condition) {
+            case "ifzero":
+              if (test === 0) {
+                nextInstruction = targets[instruction.target];
+              }
+              break;
+            case "ifpositive":
+              if (test > 0) {
+                nextInstruction = targets[instruction.target];
+              }
+              break;
+
+            case "ifnegative":
+              if (test < 0) {
+                nextInstruction = targets[instruction.target];
+              }
+              break;
+            default:
+              break;
+          }
+        }
+        break;
+      case "call":
+        this.callStack.push(nextInstruction);
         nextInstruction = targets[instruction.target];
         break;
-      case "compare":
+      case "return":
+        nextInstruction = this.callStack.pop();
+        break;
       case "push":
+        result = this.read(instruction.src);
+        this.pushStack(result);
+        break;
       case "pop":
+        this.popStack().then(result => {
+          console.log("mii", result);
+          this.write(instruction.dst, result);
+        });
+        break;
       default:
         console.log(
           `Error while executing unknown action ${instruction.action}`
@@ -171,9 +229,12 @@ class App extends Component {
 
     this.setState({
       buffer: [],
+      stack: [],
       screen: screen,
       memory: memory
     });
+
+    this.callStack = [];
   }
 
   render() {
@@ -190,8 +251,8 @@ class App extends Component {
       { key: "Enter", value: 55 },
       { key: "up", value: 60 },
       { key: "down", value: 61 },
-      { key: "right", value: 62 },
-      { key: "left", value: 63 }
+      { key: "left", value: 62 },
+      { key: "right", value: 63 }
     ];
     return (
       <div className="App">
@@ -218,6 +279,10 @@ class App extends Component {
               data={this.state.memory}
               onMemoryChange={this.setMemoryValue}
             />
+          </Card>
+          <Card>
+            <H5>stack</H5>
+            <Stack data={this.state.stack} />
           </Card>
           <Card>
             <H5>Screen</H5>
