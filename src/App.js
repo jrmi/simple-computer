@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import "./App.css";
+import React, { Component } from 'react';
+import './App.css';
 
-import { Button, Card, H5 } from "@blueprintjs/core";
+import { Button, Card, H5 } from '@blueprintjs/core';
 
-import Memory from "./components/memory";
-import Screen from "./components/screen";
-import KeyBoard from "./components/keyboard";
-import Editor from "./components/editor";
-import Stack from "./components/stack";
+import Memory from './components/memory';
+import Screen from './components/screen';
+import KeyBoard from './components/keyboard';
+import Editor from './components/editor';
+import Stack from './components/stack';
 
-import "@blueprintjs/core/lib/css/blueprint.css";
-import "@blueprintjs/icons/lib/css/blueprint-icons.css";
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 
 class App extends Component {
   constructor(props) {
@@ -37,8 +37,8 @@ class App extends Component {
       memory: [],
       stack: [],
       code:
-        "copy 1, mem[2]\nstart:\ncopy 200,*screen[2]\ninc mem[2]\ncopy mem[2], mem[3]\n" +
-        "sub 10,mem[3]\npush mem[2]\npop mem[4]\ngo start ifpositive mem[3]\n"
+        'copy 1, mem[2]\nstart:\ncopy 200,*screen[2]\ninc mem[2]\ncopy mem[2], mem[3]\n' +
+        'sub 10,mem[3]\npush mem[2]\npop mem[4]\ngo start ifpositive mem[3]\n'
     };
   }
 
@@ -94,18 +94,18 @@ class App extends Component {
   }
 
   execute() {
-    console.log("execute");
+    console.log('execute');
   }
 
   read(src) {
     switch (src.type) {
-      case "memory":
+      case 'memory':
         return this.state.memory[src.index];
-      case "reference":
+      case 'reference':
         return this.state.memory[this.state.memory[src.index]];
-      case "keyboard":
+      case 'keyboard':
         return this.readKey();
-      case "value":
+      case 'value':
         return src.value;
       default:
         return null;
@@ -114,16 +114,16 @@ class App extends Component {
 
   write(dst, value) {
     switch (dst.type) {
-      case "memory":
+      case 'memory':
         this.setMemoryValue(dst.index, value);
         break;
-      case "reference":
+      case 'reference':
         this.setMemoryValue(this.state.memory[dst.index], value);
         break;
-      case "screen":
+      case 'screen':
         this.setScreenValue(dst.index, value);
         break;
-      case "screenreference":
+      case 'screenreference':
         this.setScreenValue(this.state.memory[dst.index], value);
         break;
       default:
@@ -137,50 +137,50 @@ class App extends Component {
     let nextInstruction = currentInstruction + 1;
 
     switch (instruction.action) {
-      case "copy":
-        console.log("copy");
+      case 'copy':
+        console.log('copy');
         this.write(instruction.dst, this.read(instruction.src));
         break;
-      case "add":
-        console.log("add");
+      case 'add':
+        console.log('add');
         result = this.read(instruction.src) + this.read(instruction.dst);
         this.write(instruction.dst, result);
         break;
-      case "sub":
-        console.log("sub");
+      case 'sub':
+        console.log('sub');
         result = this.read(instruction.src) - this.read(instruction.dst);
         this.write(instruction.dst, result);
         break;
-      case "inc":
-        console.log("inc");
+      case 'inc':
+        console.log('inc');
         result = this.read(instruction.dst) + 1;
         this.write(instruction.dst, result);
         break;
-      case "dec":
-        console.log("dec");
+      case 'dec':
+        console.log('dec');
         result = this.read(instruction.dst) - 1;
         this.write(instruction.dst, result);
         break;
-      case "go":
-        console.log("go", instruction);
-        if (!instruction.hasOwnProperty("condition")) {
+      case 'go':
+        console.log('go', instruction);
+        if (!instruction.hasOwnProperty('condition')) {
           nextInstruction = targets[instruction.target];
         } else {
           const test = this.read(instruction.src);
           console.log(test);
           switch (instruction.condition) {
-            case "ifzero":
+            case 'ifzero':
               if (test === 0) {
                 nextInstruction = targets[instruction.target];
               }
               break;
-            case "ifpositive":
+            case 'ifpositive':
               if (test > 0) {
                 nextInstruction = targets[instruction.target];
               }
               break;
 
-            case "ifnegative":
+            case 'ifnegative':
               if (test < 0) {
                 nextInstruction = targets[instruction.target];
               }
@@ -190,20 +190,20 @@ class App extends Component {
           }
         }
         break;
-      case "call":
+      case 'call':
         this.callStack.push(nextInstruction);
         nextInstruction = targets[instruction.target];
         break;
-      case "return":
+      case 'return':
         nextInstruction = this.callStack.pop();
         break;
-      case "push":
+      case 'push':
         result = this.read(instruction.src);
         this.pushStack(result);
         break;
-      case "pop":
+      case 'pop':
         this.popStack().then(result => {
-          console.log("mii", result);
+          console.log('mii', result);
           this.write(instruction.dst, result);
         });
         break;
@@ -238,21 +238,21 @@ class App extends Component {
   }
 
   render() {
-    let numbers = [
-      { key: "1", value: 35 },
-      { key: "2", value: 36 },
-      { key: "3", value: 37 },
-      { key: "4", value: 38 },
-      { key: "5", value: 39 },
-      { key: "6", value: 40 },
-      { key: "7", value: 41 },
-      { key: "8", value: 42 },
-      { key: "9", value: 43 },
-      { key: "Enter", value: 55 },
-      { key: "up", value: 60 },
-      { key: "down", value: 61 },
-      { key: "left", value: 62 },
-      { key: "right", value: 63 }
+    const numbers = [
+      { key: '1', value: 35 },
+      { key: '2', value: 36 },
+      { key: '3', value: 37 },
+      { key: '4', value: 38 },
+      { key: '5', value: 39 },
+      { key: '6', value: 40 },
+      { key: '7', value: 41 },
+      { key: '8', value: 42 },
+      { key: '9', value: 43 },
+      { key: 'Enter', value: 55 },
+      { key: 'up', value: 60 },
+      { key: 'down', value: 61 },
+      { key: 'left', value: 62 },
+      { key: 'right', value: 63 }
     ];
     return (
       <div className="App">

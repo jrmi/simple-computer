@@ -1,10 +1,11 @@
-import React, { Component } from "react";
+import React, { Component } from 'react';
+
+const screenStyle = width => ({
+  width: width * 10 + 10 + 'px'
+});
 
 class Screen extends Component {
   render() {
-    const screenStyle = {
-      width: this.props.width * 10 + 10 + "px"
-    };
     const table = this.props.data.map((value, index) => (
       <div
         key={index}
@@ -12,7 +13,7 @@ class Screen extends Component {
       />
     ));
     return (
-      <div className="screenn" style={screenStyle}>
+      <div className="screenn" style={screenStyle(this.props.width)}>
         {table}
       </div>
     );
