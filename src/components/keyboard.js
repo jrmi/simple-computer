@@ -8,7 +8,7 @@ const KeyBoard = ({ numbers, onKeyClick }) => {
         <Button
           className={`key_${number.key}`}
           key={number.key}
-          onClick={onKeyClick(number.value)}
+          onClick={() => onKeyClick(number.value)}
         >
           {number.key}
         </Button>

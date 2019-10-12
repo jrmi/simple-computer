@@ -132,7 +132,7 @@ class App extends Component {
   }
 
   onInstruction(instruction, currentInstruction, targets) {
-    console.log(instruction);
+    //console.log(instruction);
     let result;
     let nextInstruction = currentInstruction + 1;
 
@@ -167,7 +167,7 @@ class App extends Component {
           nextInstruction = targets[instruction.target];
         } else {
           const test = this.read(instruction.src);
-          console.log(test);
+          //console.log(test);
           switch (instruction.condition) {
             case 'ifzero':
               if (test === 0) {
@@ -203,7 +203,7 @@ class App extends Component {
         break;
       case 'pop':
         this.popStack().then(result => {
-          console.log('mii', result);
+          console.log('pop', result);
           this.write(instruction.dst, result);
         });
         break;

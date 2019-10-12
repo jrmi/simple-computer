@@ -1,14 +1,15 @@
-import React, { Component } from "react";
-import CodeMirror from "react-codemirror";
+import React, { useEffect, useRef } from 'react';
+import { useState } from 'react';
+import CodeMirror from 'react-codemirror';
 
-import { Button, ButtonGroup, Callout } from "@blueprintjs/core";
+import { Button, ButtonGroup, Callout } from '@blueprintjs/core';
 
-import parser from "../utils/parser.js";
+import parser from '../utils/parser.js';
 
-import CM from "codemirror";
-import "codemirror/addon/mode/simple";
-import "codemirror/addon/selection/active-line";
-import "codemirror/lib/codemirror.css";
+import CM from 'codemirror';
+import 'codemirror/addon/mode/simple';
+import 'codemirror/addon/selection/active-line';
+import 'codemirror/lib/codemirror.css';
 
 function debounce(func, wait, immediate) {
   var timeout;
@@ -38,23 +39,23 @@ let simpleMode = {
     // no ambiguity between this one and the one above
     //{regex: /(?:function|var|return|if|for|while|else|do|this)\b/, token: "keyword"},
 
-    { regex: /(?:memory|mem|keyboard|stack|input|output)\b/, token: "keyword" },
+    { regex: /(?:memory|mem|keyboard|stack|input|output)\b/, token: 'keyword' },
 
     //{regex: /true|false|null|undefined/, token: "atom"},
     {
       regex: /copy|compare|goifzero|goifnzero|push|pop|call|return/,
-      token: "atom"
+      token: 'atom'
     },
 
     {
       regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i,
-      token: "number"
+      token: 'number'
     },
-    { regex: /\/\/.*/, token: "comment" },
+    { regex: /\/\/.*/, token: 'comment' },
     //{regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3"},
     // A next property will cause the mode to move to a different state
-    { regex: /\/\*/, token: "comment", next: "comment" },
-    { regex: /[-+/*=<>!]+/, token: "operator" }
+    { regex: /\/\*/, token: 'comment', next: 'comment' },
+    { regex: /[-+/*=<>!]+/, token: 'operator' }
     // indent and dedent properties guide autoindentation
     //{regex: /[\{\[\(]/, indent: true},
     //{regex: /[\}\]\)]/, dedent: true},
@@ -66,190 +67,191 @@ let simpleMode = {
   ],
   // The multi-line comment state.
   comment: [
-    { regex: /.*?\*\//, token: "comment", next: "start" },
-    { regex: /.*/, token: "comment" }
+    { regex: /.*?\*\//, token: 'comment', next: 'start' },
+    { regex: /.*/, token: 'comment' }
   ],
   // The meta property contains global information about the mode. It
   // can contain properties like lineComment, which are supported by
   // all modes, and also directives like dontIndentStates, which are
   // specific to simple modes.
   meta: {
-    dontIndentStates: ["comment"],
-    lineComment: "//"
+    dontIndentStates: ['comment'],
+    lineComment: '//'
   }
 };
 
-class Editor extends Component {
-  constructor(props) {
-    super(props);
-    this.error = "";
-    this.codemirror = React.createRef();
-    CM.defineSimpleMode("simplemode", simpleMode);
-    this.currentLine = 0;
-    this.parsedCode = [];
-    this.errors = [];
+CM.defineSimpleMode('simplemode', simpleMode);
 
-    this.state = {
-      running: false
-    };
-
-    this.onChange = debounce(this.onChange.bind(this), 1000);
-    this.onStep = this.onStep.bind(this);
-    this.onReset = this.onReset.bind(this);
-    this.onToggleExecute = this.onToggleExecute.bind(this);
-    this.execute = this.execute.bind(this);
-  }
-
-  componentDidMount() {
-    this.onChange(this.props.value);
-  }
-
-  onChange(value) {
-    this.errors = [];
-    try {
-      this.parsedCode = parser.parse(value);
-      console.log(this.parsedCode);
-      const { targets, errors } = this.semanticAnalysis(this.parsedCode);
-      this.targets = targets;
-      this.errors = errors;
-      console.log(this.targets, this.errors);
-    } catch (error) {
-      console.log(error);
-      this.errors.push(
-        `${error.name}: Line ${error.location.start.line} - ${error.message}`
-      );
-    }
-
-    this.props.onChange(value);
-  }
-
-  semanticAnalysis(instructions) {
-    const targets = {};
-    const errors = [];
-    instructions.forEach(function(instruction, index) {
-      console.log(instruction);
-      if (instruction.label) {
-        if (targets.hasOwnProperty(instruction.label)) {
-          errors.push(
-            `Line ${instruction.instruction.line}: symbol '${
-              instruction.label
-            }' already defined.`
-          );
-        } else {
-          targets[instruction.label] = index;
-        }
-      }
-    });
-    return { targets, errors };
-  }
-
-  onStep() {
-    if (this.currentLine < this.parsedCode.length) {
-      const instruction = this.parsedCode[this.currentLine];
-      const { nextInstruction } = this.props.onInstruction(
-        instruction.instruction,
-        this.currentLine,
-        this.targets
-      );
-      this.currentLine = nextInstruction;
-    } else {
-      console.log("Execution finished !");
-    }
-  }
-
-  async onToggleExecute() {
-    await this.setState({ running: !this.state.running });
-    //this.running = !this.running;
-    this.execute();
-  }
-
-  execute() {
-    if (this.state.running) {
-      this.onStep();
-      setTimeout(this.execute, 10);
-    }
-  }
-
-  async onReset() {
-    await this.setState({ running: false });
-    this.currentLine = 0;
-    this.props.onReset();
-  }
-
-  render() {
-    let options = {
-      lineNumbers: true,
-      mode: "simplemode",
-      styleActiveLine: true
-    };
-
-    const errors = this.errors.map((value, index) => {
-      return (
-        <Callout key="index" intent="danger">
-          {value}
-        </Callout>
-      );
-    });
-
-    const canExecute = this.errors.length ? true : false;
-
-    const execute = (() => {
-      if (this.state.running) {
-        return (
-          <Button
-            intent="warning"
-            icon="pause"
-            onClick={this.onToggleExecute}
-            disabled={canExecute}
-          >
-            Stop
-          </Button>
+const semanticAnalysis = instructions => {
+  const targets = {};
+  const errors = [];
+  instructions.forEach((instruction, index) => {
+    //console.log(instruction);
+    if (instruction.label) {
+      if (targets.hasOwnProperty(instruction.label)) {
+        errors.push(
+          `Line ${instruction.instruction.line}: symbol '${instruction.label}' already defined.`
         );
       } else {
-        return (
-          <Button
-            intent="success"
-            icon="play"
-            onClick={this.onToggleExecute}
-            disabled={canExecute}
-          >
-            Execute
-          </Button>
-        );
+        targets[instruction.label] = index;
       }
-    })();
+    }
+  });
+  return [targets, errors];
+};
 
-    return (
-      <div className="editor">
-        <CodeMirror
-          className="code"
-          value={this.props.value}
-          onChange={this.onChange}
-          options={options}
-          ref={this.codemirror}
-        />
-        {errors}
-        <ButtonGroup>
-          <Button
-            icon="refresh"
-            intent="danger"
-            onClick={this.onReset}
-            disabled={canExecute}
-          >
-            Reset
-          </Button>
-          <Button
-            icon="step-forward"
-            onClick={this.onStep}
-            disabled={canExecute}
-          >
-            Step
-          </Button>
-          {execute}
-        </ButtonGroup>
-      </div>
+const handleStep = ({ onInstruction, parsedCode, currentLine, targets }) => {
+  //console.log('Current line', currentLine);
+  if (currentLine < parsedCode.length) {
+    const instruction = parsedCode[currentLine];
+    const { nextInstruction } = onInstruction(
+      instruction.instruction,
+      currentLine,
+      targets
     );
+    return nextInstruction;
+  } else {
+    return null;
   }
-}
+};
+
+const Editor = ({ value, onChange, onExecute, onInstruction, onReset }) => {
+  let isMounted = true;
+  const [errors, setErrors] = useState([]);
+  const [running, setRunning] = useState(false);
+  const [codeState, setCodeState] = useState({
+    parsedCode: [],
+    running: false,
+    targets: [],
+    currentLine: 0
+  });
+
+  const codemirror = useRef();
+  const runningRef = useRef(running);
+  runningRef.current = running;
+  const codeStateRef = useRef(codeState);
+  codeStateRef.current = codeState;
+
+  const codeMirrorOptions = {
+    lineNumbers: true,
+    mode: 'simplemode',
+    styleActiveLine: true
+  };
+
+  if (codemirror.current) {
+    codemirror.current.getCodeMirror().doc.setCursor(codeState.currentLine);
+  }
+
+  const handleChange = debounce(value => {
+    try {
+      const parsedCode = parser.parse(value);
+      setCodeState(prev => {
+        return { ...prev, parsedCode: parsedCode };
+      });
+    } catch (error) {
+      console.log('error', error);
+      setErrors([
+        `${error.name}: Line ${error.location.start.line} - ${error.message}`
+      ]);
+      return;
+    }
+    onChange(value);
+  }, 500);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    handleChange(value);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    const [newTargets, newErrors] = semanticAnalysis(codeState.parsedCode);
+    setErrors(newErrors);
+    setCodeState(prev => {
+      return { ...prev, targets: newTargets };
+    });
+  }, [codeState.parsedCode]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      execute();
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
+
+  const execute = () => {
+    if (runningRef.current) {
+      executeOne();
+    }
+  };
+
+  const executeOne = () => {
+    const nextInstruction = handleStep({
+      onInstruction,
+      ...codeStateRef.current
+    });
+    if (nextInstruction === null) {
+      setRunning(false);
+      console.log('Program terminated normally');
+      return;
+    }
+    setCodeState(prev => {
+      return { ...prev, currentLine: nextInstruction };
+    });
+  };
+
+  const handleReset = () => {
+    setRunning(false);
+    setCodeState(prev => {
+      return { ...prev, currentLine: 0 };
+    });
+    onReset();
+  };
+
+  const canExecute = errors.length ? true : false;
+
+  return (
+    <div className="editor">
+      <CodeMirror
+        className="code"
+        value={value}
+        onChange={handleChange}
+        options={codeMirrorOptions}
+        ref={codemirror}
+      />
+      {errors.map((value, index) => {
+        return (
+          <Callout key="index" intent="danger">
+            {value}
+          </Callout>
+        );
+      })}
+      <ButtonGroup>
+        <Button
+          icon="refresh"
+          intent="danger"
+          onClick={handleReset}
+          disabled={canExecute}
+        >
+          Reset
+        </Button>
+        <Button icon="step-forward" onClick={executeOne} disabled={canExecute}>
+          Step
+        </Button>
+        <Button
+          intent={running ? 'warning' : 'success'}
+          icon={running ? 'pause' : 'play'}
+          onClick={() => setRunning(!running)}
+          disabled={canExecute}
+        >
+          {running ? 'Stop' : 'Execute'}
+        </Button>
+      </ButtonGroup>
+    </div>
+  );
+};
 
 export default Editor;
