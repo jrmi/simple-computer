@@ -1,6 +1,5 @@
 .App {
   display: flex;
-
 }
 
 .App-logo {
@@ -33,42 +32,46 @@
   }
 }
 
-.screenn{
-  border: 5px solid rgba(255,255,255,0.5);
+.screenn {
+  border: 5px solid rgba(255, 255, 255, 0.5);
   display: flex;
   flex-wrap: wrap;
 }
 
-.screenn > div{
+.screenn > div {
   flex: 1;
   min-width: 10px;
   width: 9px;
   height: 9px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  border-right: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   background-color: white;
 }
 
-.memory{
+.memory {
   display: flex;
   flex-wrap: wrap;
   align-content: space-between;
   border: 5px solid blue;
   padding: 2px;
 }
-.memory div{
+.memory div {
   /*padding: 2px 10px;*/
   width: 48px;
   text-align: right;
 }
-.memory .bp3-input{
+.memory .bp3-input {
   text-align: center;
 }
 
-.code{
+.code {
   width: 50vw;
 }
 
-.left-side{
+.left-side {
   flex: 3;
+}
+
+.stack {
+  min-height: 2em;
 }

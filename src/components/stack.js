@@ -1,12 +1,13 @@
-import React, { Component } from "react";
+import React from 'react';
 
-class Stack extends Component {
-  render() {
-    const table = this.props.data.map((value, index) => {
-      return <div key={index}>{value}</div>;
-    });
-    return <div className="stack">{table}</div>;
-  }
-}
+const Stack = ({ data }) => {
+  return (
+    <div className="stack">
+      {data.map((value, index) => {
+        return <div key={index}>{value}</div>;
+      })}
+    </div>
+  );
+};
 
 export default Stack;
