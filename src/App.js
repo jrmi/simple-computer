@@ -239,6 +239,7 @@ class App extends Component {
 
   render() {
     const numbers = [
+      { key: '0', value: 34 },
       { key: '1', value: 35 },
       { key: '2', value: 36 },
       { key: '3', value: 37 },
