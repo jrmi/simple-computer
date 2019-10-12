@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { NumericInput } from '@blueprintjs/core';
 
 /*function padDigits(number, digits) {

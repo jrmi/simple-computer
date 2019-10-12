@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 
 const screenStyle = width => ({
   width: width * 10 + 10 + 'px'
