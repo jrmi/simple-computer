@@ -183,6 +183,7 @@ const Editor = ({ value, onChange, onExecute, onInstruction, onReset }) => {
   }, []);
 
   const execute = () => {
+    onExecute();
     if (runningRef.current) {
       executeOne();
     }
